@@ -4,7 +4,7 @@ import os
 from dataclasses import dataclass
 
 from yt_dlp import YoutubeDL
-from .utils import ensure_dir, slugify
+from .utils import ensure_dir
 
 
 @dataclass
@@ -13,15 +13,28 @@ class DownloadedVideo:
     filepath: str
 
 
-def download_video(url: str, dest_dir: str) -> DownloadedVideo:
+def download_video(
+    url: str,
+    dest_dir: str,
+    cookies_file: str | None = None,
+    cookies_from_browser: str | None = None,
+) -> DownloadedVideo:
     ensure_dir(dest_dir)
     out_tmpl = os.path.join(dest_dir, "%(title).80s-%(id)s.%(ext)s")
     
     ydl_opts = {
-        'format': 'bv*[height<=360]+ba/b[height<=360]/best',
+        'format': 'bv*[height<=1080]+ba/b[height<=1080]/best',
         'merge_output_format': 'mp4',
         'outtmpl': out_tmpl,
     }
+
+    # Authentication options
+    if cookies_file:
+        ydl_opts['cookiefile'] = cookies_file
+    if cookies_from_browser:
+        # Basic support: pass browser name (e.g., 'chrome', 'brave', 'firefox')
+        # Advanced profile/keyring selection can be added later if needed.
+        ydl_opts['cookiesfrombrowser'] = (cookies_from_browser,)
     
     with YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)

@@ -25,6 +25,11 @@ def main() -> None:
     parser.add_argument("--workdir", default="outputs")
     parser.add_argument("--datadir", default="data")
     parser.add_argument("--use-vad-filter", action="store_true")
+    parser.add_argument("--cookies", help="Path to a cookies.txt file for authenticated downloads")
+    parser.add_argument(
+        "--cookies-from-browser",
+        help="Browser name for cookies (e.g., chrome, brave, edge, firefox)",
+    )
     args = parser.parse_args()
 
     run_id = slugify(args.prompt)
@@ -41,7 +46,12 @@ def main() -> None:
     # 2) Download
     sources: List[SourceVideo] = []
     for r in search_results:
-        dl = download_video(r.url, data_dir)
+        dl = download_video(
+            r.url,
+            data_dir,
+            cookies_file=args.cookies,
+            cookies_from_browser=args.cookies_from_browser,
+        )
         sources.append(SourceVideo(url=r.url, title=r.title, path=dl.filepath, duration=r.duration))
 
     # 3) Transcribe + 4) Windows
